@@ -11,6 +11,8 @@ fastapi = "^0.115.0"
 uvicorn = "^0.31.0"
 pydantic = {extras = ["email"], version = "^2.9.2"}
 psycopg2-binary = "^2.9.9"
+GeoAlchemy2 = "^0.16.0"
+shapely = "^2.0.6"
 
 [tool.poetry.dev-dependencies]
 

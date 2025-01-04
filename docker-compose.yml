@@ -1,44 +1,65 @@
-version: '3.8'
+# Definição dos serviços, ou seja, os contêineres
 services:
-  postgres:
-    image: postgres:latest
+  # Serviço Postgres
+  postgis:
+    # Imagem usada, pegando a última versão do Postgres
+    image: postgis/postgis:latest
+    # Mapeia um volume para persistência de dados
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgis_data:/var/lib/postgresql/data
+    # Variáveis de ambiente para configuração do Postgres
+    ports:
+      - "5432:5432"
     environment:
       POSTGRES_DB: mydatabase
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
+    # Conecta o serviço à rede 'mynetwork'
     networks:
       - mynetwork
 
+  # Serviço Backend
   backend:
+    # Configura como construir a imagem do serviço usando um Dockerfile localizado em ./backend.
     build: 
       context: ./backend
       dockerfile: Dockerfile
+    # Mapeia o diretório local 'backend' para '/app' no contêiner
     volumes:
       - ./backend:/app
+    # Variável de ambiente com a URL de conexão ao banco de dados
     environment:
-      DATABASE_URL: postgresql://user:password@postgres/mydatabase
+      DATABASE_URL: postgresql://user:password@postgis/mydatabase
+    # Mapeamento de portas (porta do host:porta do contêiner)
     ports:
       - "8000:8000"
+    # Define que o backend depende do serviço 'postgres'
     depends_on:
-      - postgres
+      - postgis
+    # Conecta o serviço à rede 'mynetwork'
     networks:
       - mynetwork
 
-  frontend:
-    build: 
-      context: ./frontend
-      dockerfile: Dockerfile
-    volumes:
-      - ./frontend:/app
-    ports:
-      - "8501:8501"
-    networks:
-      - mynetwork
+  # # Serviço Frontend
+  # frontend:
+  #   # Configurações para construção da imagem do frontend
+  #   build: 
+  #     context: ./frontend
+  #     dockerfile: Dockerfile
+  #   # Mapeia o diretório local 'frontend' para '/app' no contêiner
+  #   volumes:
+  #     - ./frontend:/app
+  #   # Mapeamento de portas (porta do host:porta do contêiner)
+  #   ports:
+  #     - "8501:8501"
+  #   # Conecta o serviço à rede 'mynetwork'
+  #   networks:
+  #     - mynetwork
 
+# Rede 'mynetwork' definida para comunicação entre os serviços
 networks:
   mynetwork:
 
+# Volume 'postgres_data' para armazenamento de dados do Postgres de forma persistente
 volumes:
-  postgres_data:
+  postgis_data:

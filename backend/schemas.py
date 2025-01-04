@@ -1,62 +1,47 @@
-from pydantic import BaseModel, PositiveFloat, EmailStr, validator, Field
-from enum import Enum
-from datetime import datetime
+from pydantic import BaseModel
 from typing import Optional
+from shapely.geometry import mapping, Polygon
+from typing import List, Union
+from pydantic.fields import Field
 
+class GeoJSON(BaseModel):
+    type: str = Field(..., description="The type of geometry.")
+    coordinates: Union[List[float], List[List[float]], List[List[List[float]]]] = Field(
+        ..., description="The coordinates of the geometry.")
+    
+"""
+PolygonBase: Este modelo define os campos básicos que todos os registros de Polygon terão, 
+incluindo nome, descrição e geometria. A geometria é tratada como um dicionário, 
+assumindo que os dados são recebidos e enviados em formato GeoJSON.
+PolygonCreate: Um modelo simples que herda de PolygonBase sem adições, usado para a criação 
+de novos registros.
+"""
 
-class CategoriaBase(Enum):
-    categoria1 = "Eletrônico"
-    categoria2 = "Eletrodoméstico"
-    categoria3 = "Móveis"
-    categoria4 = "Roupas"
-    categoria5 = "Calçados"
-
-
-class ProductBase(BaseModel):
+class PolygonBase(BaseModel):
     name: str
     description: Optional[str] = None
-    price: PositiveFloat
-    categoria: str
-    email_fornecedor: EmailStr
+    geometry: GeoJSON  # Armazena como dicionário
 
-    @validator("categoria")
-    def check_categoria(cls, v):
-        if v in [item.value for item in CategoriaBase]:
-            return v
-        raise ValueError("Categoria inválida")
-
-
-class ProductCreate(ProductBase):
+class PolygonCreate(PolygonBase):
     pass
 
-'''
-O orm_mode = True na classe ProductResponse permite que 
-o Pydantic converta objetos ORM diretamente em modelos Pydantic.
-Outros modelos, como ProductCreate e ProductUpdate, 
-recebem dados de entrada do usuário e, por isso, 
-não precisam de orm_mode porque lidam com dicionários (JSON) 
-e não objetos ORM.
-'''
-
-class ProductResponse(ProductBase):
+"""
+PolygonResponse: Inclui campos adicionais como id, que são típicos de dados 
+retornados de um banco de dados. orm_mode = True permite que o Pydantic trate objetos ORM 
+(como aqueles retornados pelo SQLAlchemy) como dicionários, facilitando a serialização.
+"""
+class PolygonResponse(PolygonBase):
     id: int
-    created_at: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
-
-class ProductUpdate(BaseModel):
-    name: Optional[str] = None
-    description: Optional[str] = None
-    price: Optional[PositiveFloat] = None
-    categoria: Optional[str] = None
-    email_fornecedor: Optional[EmailStr] = None
-
-    @validator("categoria", pre=True, always=True)
-    def check_categoria(cls, v):
-        if v is None:
-            return v
-        if v in [item.value for item in CategoriaBase]:
-            return v
-        raise ValueError("Categoria inválida")
+"""
+PolygonUpdate: Permite atualizações parciais dos dados, onde todos os campos são opcionais. 
+Isso é útil para APIs que suportam atualizações PATCH, permitindo que os usuários modifiquem 
+somente certos campos de um registro existente.
+"""
+# class PolygonUpdate(BaseModel):
+#     name: Optional[str] = None
+#     description: Optional[str] = None
+#     geometry: Optional[dict] = None

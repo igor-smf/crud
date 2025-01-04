@@ -1,26 +1,76 @@
+"""
+Esta função é usada para criar uma instância de conexão ao banco de dados. 
+O "engine" é o ponto de entrada para a base de dados, permitindo que o SQLAlchemy 
+comunique com este usando a URL especificada.
+"""
 from sqlalchemy import create_engine
+
+"""
+Esta função retorna uma classe base que será usada para declarar modelos de dados em Python. 
+Ou seja, você definirá as classes que mapeiam para tabelas no banco de dados 
+a partir dessa classe base.
+"""
 from sqlalchemy.ext.declarative import declarative_base
+
+"""
+Esta função é um construtor de fábrica que gera novas instâncias de Session, 
+que são usadas para gerenciar operações na base de dados com o ORM.
+"""
 from sqlalchemy.orm import sessionmaker
 
-# Essa URL instrui o SQLAlchemy sobre onde e como se conectar ao banco de dados PostgreSQL
-SQLALCHEMY_DATABASE_URL = "postgresql://user:password@postgres/mydatabase"
+"""
+Esta é a URL de conexão com o banco de dados, especificando:
+    postgresql: O sistema de banco de dados a ser usado (PostgreSQL).
+    user: O nome do usuário para acessar o banco de dados.
+    password: A senha para o usuário especificado.
+    postgis: O host onde o banco de dados está rodando. No contexto de um Docker Compose, isso seria o nome do serviço do PostgreSQL.
+    mydatabase: O nome do banco de dados a ser acessado.
+"""
+SQLALCHEMY_DATABASE_URL = "postgresql://user:password@postgis/mydatabase"
 
-# Cria o motor do banco de dados, é que o conecta com o banco
-# Este motor não abre uma conexão imediatamente, mas configura tudo para que o código possa solicitar conexões conforme necessário.
+"""
+Chama a função create_engine com a URL de conexão como argumento. 
+O resultado é um objeto engine que mantém a conexão com o banco de dados especificado na URL. 
+Este objeto será utilizado para interagir com o banco de dados, seja para executar consultas, 
+atualizações ou deletar operações através de sessões geradas a partir dele.
+"""
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 
 # Sessão de banco de dados, é quem vai executar as queries
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Base para os modelos declarativos
-# Base: Essa é a classe base para todas as classes que representarão as tabelas no banco de dados. Cada classe que você define, herdando de Base, será mapeada para uma tabela no banco de dados.
-# Ao herdar de Base, cada classe "declarativa" representa uma tabela, e os atributos da classe representam as colunas dessa tabela.
+"""
+Base para os modelos declarativos
+Base: Essa é a classe base para todas as classes que representarão 
+as tabelas no banco de dados. 
+Cada classe que você define, herdando de Base, será mapeada para uma tabela no banco de dados.
+Ao herdar de Base, cada classe "declarativa" representa uma tabela, e os atributos da classe 
+representam as colunas dessa tabela.
+"""
 Base = declarative_base() # ORM
 
 
 def get_db():
+    # Cria uma sessão de banco de dados local usando o objeto SessionLocal configurado
     db = SessionLocal()
     try:
+        # Yield retorna a sessão db para ser usada em algum contexto
         yield db
     finally:
+        # Garante que a sessão seja fechada após o uso, mesmo se ocorrerem erros
         db.close()
+
+"""
+Uso de yield na Função get_db():
+No contexto da sua função get_db(), yield é usado para fornecer uma sessão de banco de dados 
+ao chamador, permitindo que o chamador execute operações no banco de dados. 
+
+Aqui está o que acontece:
+
+A função cria uma sessão de banco de dados e a retorna usando yield.
+O chamador usa essa sessão para fazer operações de banco de dados.
+Independentemente do que acontece durante essas operações (sucesso, erro ou exceção), 
+a função get_db() retoma a execução após o bloco de código que usou o gerador ser concluído, 
+chegando à cláusula finally.
+A cláusula finally garante que a sessão seja fechada, limpando recursos.
+"""

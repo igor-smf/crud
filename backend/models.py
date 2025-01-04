@@ -1,15 +1,10 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime
-from sqlalchemy.sql import func
+from sqlalchemy import Column, Integer, String
 from database import Base
+from geoalchemy2 import Geometry
 
-
-class ProductModel(Base):
-    __tablename__ = "products"  # esse será o nome da tabela
-
-    id = Column(Integer, primary_key=True, index=True)
+class PolygonData(Base):
+    __tablename__ = "polygon_data"
+    id = Column(Integer, primary_key=True)
     name = Column(String, index=True)
     description = Column(String, index=True)
-    price = Column(Float, index=True)
-    categoria = Column(String, index=True)
-    email_fornecedor = Column(String, index=True)
-    created_at = Column(DateTime(timezone=True), default=func.now(), index=True)
+    geometry = Column(Geometry(geometry_type='GEOMETRY', srid=4326))
