@@ -1,3 +1,8 @@
+"""
+Importa BaseModel da biblioteca Pydantic, que é usado para criar classes de validação de dados.
+Optional, List, Union são tipos de dados usados para especificar o tipo de um atributo, 
+como listas ou valores opcionais.
+"""
 from pydantic import BaseModel
 from typing import Optional
 from shapely.geometry import mapping, Polygon
@@ -10,9 +15,8 @@ class GeoJSON(BaseModel):
         ..., description="The coordinates of the geometry.")
     
 """
-PolygonBase: Este modelo define os campos básicos que todos os registros de Polygon terão, 
-incluindo nome, descrição e geometria. A geometria é tratada como um dicionário, 
-assumindo que os dados são recebidos e enviados em formato GeoJSON.
+PolygonBase: Define a base de um polígono com nome, descrição opcional e geometria. 
+A geometria é tratada como um dicionário, representando dados em formato GeoJSON.
 PolygonCreate: Um modelo simples que herda de PolygonBase sem adições, usado para a criação 
 de novos registros.
 """
@@ -35,13 +39,3 @@ class PolygonResponse(PolygonBase):
 
     class Config:
         from_attributes = True
-
-"""
-PolygonUpdate: Permite atualizações parciais dos dados, onde todos os campos são opcionais. 
-Isso é útil para APIs que suportam atualizações PATCH, permitindo que os usuários modifiquem 
-somente certos campos de um registro existente.
-"""
-# class PolygonUpdate(BaseModel):
-#     name: Optional[str] = None
-#     description: Optional[str] = None
-#     geometry: Optional[dict] = None

@@ -1,20 +1,19 @@
 """
-Esta função é usada para criar uma instância de conexão ao banco de dados. 
-O "engine" é o ponto de entrada para a base de dados, permitindo que o SQLAlchemy 
-comunique com este usando a URL especificada.
+Importa a função create_engine do SQLAlchemy. 
+Esta função é usada para criar uma conexão com o banco de dados especificado por uma URL.
 """
 from sqlalchemy import create_engine
 
 """
-Esta função retorna uma classe base que será usada para declarar modelos de dados em Python. 
+Esta função declarative_base retorna uma classe base que será usada para declarar modelos de dados em Python. 
 Ou seja, você definirá as classes que mapeiam para tabelas no banco de dados 
 a partir dessa classe base.
 """
 from sqlalchemy.ext.declarative import declarative_base
 
 """
-Esta função é um construtor de fábrica que gera novas instâncias de Session, 
-que são usadas para gerenciar operações na base de dados com o ORM.
+Importa a função sessionmaker que é uma fábrica para criar sessões de banco de dados. 
+Uma sessão permite executar comandos SQL e interagir com o banco.
 """
 from sqlalchemy.orm import sessionmaker
 
@@ -23,7 +22,8 @@ Esta é a URL de conexão com o banco de dados, especificando:
     postgresql: O sistema de banco de dados a ser usado (PostgreSQL).
     user: O nome do usuário para acessar o banco de dados.
     password: A senha para o usuário especificado.
-    postgis: O host onde o banco de dados está rodando. No contexto de um Docker Compose, isso seria o nome do serviço do PostgreSQL.
+    postgis: O host onde o banco de dados está rodando. No contexto de um Docker Compose, 
+    isso seria o nome do serviço do PostgreSQL.
     mydatabase: O nome do banco de dados a ser acessado.
 """
 SQLALCHEMY_DATABASE_URL = "postgresql://user:password@postgis/mydatabase"
@@ -36,7 +36,12 @@ atualizações ou deletar operações através de sessões geradas a partir dele
 """
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 
-# Sessão de banco de dados, é quem vai executar as queries
+"""
+Configura e cria uma fábrica de sessões de banco de dados. autocommit=False significa que 
+é necessário chamar commit() manualmente para salvar transações no banco. autoflush=False 
+evita que o SQLAlchemy envie automaticamente consultas SQL ao banco antes de chamar commit(). 
+bind=engine associa esta fábrica de sessões à engine criada.
+"""
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 """

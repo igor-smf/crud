@@ -13,11 +13,11 @@ router = APIRouter()
 
 @router.get("/geodata/", response_model=List[PolygonResponse])
 def read_all_geodata_route(db: Session = Depends(get_db)):
-    """Retrieve all geodata entries from the database."""
+    """Extract all geospatial data entries from the database."""
     geodata = get_polygons(db)
     return geodata
 
 @router.post("/geodata/", response_model=PolygonResponse)
 def create_geodata_route(geodata: PolygonCreate, db: Session = Depends(get_db)):
-    """Create a new geodata entry from the provided geodata."""
+    """Generate a new geospatial data entry using the provided geospatial information."""
     return create_polygon(db, geodata)

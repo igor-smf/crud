@@ -11,13 +11,29 @@ def create_polygon(db: Session, polygon: PolygonCreate):
         "coordinates": polygon.geometry.coordinates
     }
     
-    # Converte o dicionário GeoJSON em um objeto de geometria Shapely
+    """
+    GeoJSON para Shapely: O GeoJSON é um formato de intercâmbio de dados geográficos amplamente
+      utilizado em aplicações web e APIs. No entanto, para manipulação geométrica mais complexa,
+        muitas bibliotecas Python, como Shapely, não trabalham diretamente com GeoJSON. 
+        Shapely é excelente para manipular formas, calcular áreas, verificar interseções, etc., 
+        mas necessita dos dados em seu próprio formato de objeto geométrico. 
+        A conversão do GeoJSON para objetos Shapely permite aproveitar essas funcionalidades.
+    """
     shapely_geom = shape(geojson_dict)
+
     db_polygon = PolygonData(
         name=polygon.name,
         description=polygon.description,
         geometry=from_shape(shapely_geom, srid=4326)  # Converte de Shapely para GeoAlchemy2
     )
+    """
+    Shapely para GeoAlchemy2: GeoAlchemy2 estende o SQLAlchemy para suportar tipos geométricos 
+    em bancos de dados, como PostGIS (uma extensão do PostgreSQL). Contudo, 
+    GeoAlchemy2 trabalha com formatos específicos como WKT (Well-Known Text) e 
+    WKB (Well-Known Binary), que são formatos padrões em sistemas de banco de dados espaciais. 
+    Shapely não produz diretamente esses formatos, então a conversão é necessária para 
+    armazenar as geometrias no banco de dados.
+    """
     db.add(db_polygon)
     db.commit()
     db.refresh(db_polygon)
@@ -31,10 +47,19 @@ def create_polygon(db: Session, polygon: PolygonCreate):
     # Use o GeoJSON convertido na sua resposta
     return PolygonResponse(id=db_polygon.id, name=db_polygon.name, description=db_polygon.description, geometry=geojson)
 
-from shapely.geometry import shape, mapping
-from geoalchemy2.shape import to_shape
-
 def get_polygons(db: Session, skip: int = 0, limit: int = 100):
+    
+    """
+    skip: Define o número de registros a serem pulados antes de começar a retornar os 
+    resultados. Isso é útil para navegar pelas páginas de resultados. 
+    Por exemplo, se skip for 30, os primeiros 30 registros serão ignorados, e a contagem 
+    começará a partir do 31º registro.
+    
+    limit: Limita o número de registros retornados pela consulta. 
+    Isso controla quantos registros são mostrados em uma única página ou chamada de API. 
+    Por exemplo, se limit for 10, apenas 10 registros serão retornados.
+    """
+    
     # Recupera os polígonos do banco de dados
     polygons = db.query(PolygonData).offset(skip).limit(limit).all()
     
