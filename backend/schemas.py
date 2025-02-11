@@ -16,11 +16,11 @@ class ProductResponse(ProductBase):
     created_at: datetime
 
     """
-    orm_mode = True permite que o Pydantic trate objetos ORM (como aqueles retornados pelo 
+    from_attributes  = True permite que o Pydantic trate objetos ORM (como aqueles retornados pelo 
     SQLAlchemy) como dicionários, facilitando a serialização.
     """
     class Config:
-        orm_mode = True
+        from_attributes  = True
 
 class ProductUpdate(BaseModel):
     name: Optional[str] = None
@@ -66,7 +66,7 @@ class StockMovementResponse(BaseModel):
     items: List[StockMovementItemBase]
 
     class Config:
-        orm_mode = True
+        from_attributes  = True
 
 # Este modelo é utilizado para adicionar itens a uma movimentação já existente.
 class StockMovementItemCreate(StockMovementItemBase):
