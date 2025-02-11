@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "crud_stock_control"
+version = "0.1.0"
+description = ""
+authors = ["Igor Silva <igor.silvamf@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+SQLAlchemy = "^2.0.37"
+psycopg2-binary = "^2.9.10"
+pydantic = "^2.10.6"
+fastapi = "^0.115.8"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
