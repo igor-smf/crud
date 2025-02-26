@@ -5,7 +5,8 @@ Esta função é usada para criar uma conexão com o banco de dados especificado
 from sqlalchemy import create_engine
 
 """
-Esta função declarative_base retorna uma classe base que será usada para declarar modelos de dados em Python. 
+Esta função declarative_base retorna uma classe base que será usada para declarar modelos de 
+dados em Python. 
 Ou seja, você definirá as classes que mapeiam para tabelas no banco de dados 
 a partir dessa classe base.
 """
@@ -41,6 +42,8 @@ Configura e cria uma fábrica de sessões de banco de dados. autocommit=False si
 é necessário chamar commit() manualmente para salvar transações no banco. autoflush=False 
 evita que o SQLAlchemy envie automaticamente consultas SQL ao banco antes de chamar commit(). 
 bind=engine associa esta fábrica de sessões à engine criada.
+SessionLocal é uma instância da função sessionmaker do SQLAlchemy, configurada para criar 
+sessões de banco de dados que são usadas para gerenciar transações com o banco de dados.
 """
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -55,7 +58,12 @@ representam as colunas dessa tabela.
 Base = declarative_base()
 
 def get_db():
-    # Cria uma sessão de banco de dados local usando o objeto SessionLocal configurado
+    """
+    Aqui, uma nova sessão de banco de dados é criada usando o SessionLocal, que é uma 
+    instância da fábrica sessionmaker do SQLAlchemy. SessionLocal foi configurado 
+    anteriormente para gerar sessões com certas propriedades 
+    (como autocommit=False e autoflush=False)
+    """
     db = SessionLocal()
     try:
         # Yield retorna a sessão db para ser usada em algum contexto
@@ -63,3 +71,24 @@ def get_db():
     finally:
         # Garante que a sessão seja fechada após o uso, mesmo se ocorrerem erros
         db.close()
+
+"""
+IMPORTANTE
+Uso de Geradores com yield para Dependências
+Quando você define uma dependência usando um gerador com yield, 
+o FastAPI entende isso como uma instrução para:
+
+Iniciar a execução da função dependente (no seu caso, get_db()) até chegar ao yield.
+
+Aqui, o FastAPI obtém a sessão do banco de dados que está sendo "yielded" e a passa para 
+a rota que precisa dela.
+Usar o valor retornado por yield (a sessão de banco de dados, neste exemplo) na rota 
+para realizar operações necessárias, como consultas ou atualizações no banco de dados.
+
+Retomar a execução da função dependente depois que a rota termina de executar.
+
+Isto é onde a mágica do yield realmente brilha. Após a rota concluir, o controle retorna 
+para a função get_db(), que continua sua execução no ponto onde foi interrompida 
+(após o yield). Isso permite que a função execute qualquer código de limpeza necessário, 
+como fechar a conexão de banco de dados.
+"""

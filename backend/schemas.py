@@ -1,4 +1,4 @@
-from pydantic import BaseModel, PositiveFloat, Field
+from pydantic import BaseModel, PositiveFloat, Field, PositiveInt 
 from datetime import datetime
 from typing import Optional, List
 
@@ -16,8 +16,13 @@ class ProductResponse(ProductBase):
     created_at: datetime
 
     """
-    from_attributes  = True permite que o Pydantic trate objetos ORM (como aqueles retornados pelo 
-    SQLAlchemy) como dicionários, facilitando a serialização.
+    from_attributes  = True permite que o Pydantic trate objetos ORM 
+    (como aqueles retornados pelo SQLAlchemy) como dicionários, facilitando a serialização.
+
+    A serialização refere-se ao processo de converter objetos complexos do SQLAlchemy 
+    (que são instâncias de classes de modelo representando dados do banco de dados) 
+    em um formato mais simples, como JSON, que pode ser enviado através de uma API para 
+    um cliente ou consumidor.
     """
     class Config:
         from_attributes  = True
@@ -57,7 +62,7 @@ Uso de Field(default_factory=list)
 
 class StockMovementItemBase(BaseModel):
     product_id: int
-    quantity: int
+    quantity: PositiveInt
 
 class StockMovementResponse(BaseModel):
     id: int
@@ -76,3 +81,15 @@ class StockMovementItemCreate(StockMovementItemBase):
 class StockMovementWithItemsCreate(StockMovementBase):
     items: List[StockMovementItemCreate]
 
+class StockCalculationResponse(BaseModel):
+    product_id: int
+    product_name: Optional[str] = None
+    current_stock: int
+    description: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+class Error(BaseModel):
+    error: str
+    details: List[str]

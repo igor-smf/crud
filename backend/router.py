@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import SessionLocal, get_db
-from schemas import ProductResponse, ProductUpdate, ProductCreate, StockMovementWithItemsCreate, StockMovementResponse
-from typing import List
+from schemas import ProductResponse, ProductUpdate, ProductCreate, StockMovementWithItemsCreate, StockMovementResponse, StockCalculationResponse, Error
+from typing import List, Union
 from crud import (
     create_product,
     get_products,
@@ -14,12 +14,13 @@ from crud import (
     get_stock_movement,
     delete_stock_movement,
     update_stock_movement,
+    calculate_stock,
 )
 
 router = APIRouter()
 
 # Rotas para produtos
-@router.post("/products/", response_model=ProductResponse)
+@router.post("/products/", response_model=ProductResponse, description="Cria um novo produto.")
 def create_product_route(product: ProductCreate, db: Session = Depends(get_db)):
     return create_product(db=db, product_data=product)
 
@@ -52,7 +53,7 @@ def update_product_route(
     return db_product
 
 # Rotas para movimentações de estoque
-@router.post("/stock-movements/", response_model=StockMovementResponse)
+@router.post("/stock-movements/", response_model=Union[StockMovementResponse, Error])
 def create_stock_movement_route(movement: StockMovementWithItemsCreate, db: Session = Depends(get_db)):
     return create_stock_movement(db=db, movement_data=movement)
 
@@ -83,3 +84,14 @@ def update_stock_movement_route(
     if updated_movement is None:
         raise HTTPException(status_code=404, detail="Stock movement not found")
     return updated_movement
+
+@router.get("/products/{product_id}/stock", response_model=StockCalculationResponse)
+def get_product_stock(product_id: int, db: Session = Depends(get_db)):
+    # Chama a função calculate_stock e armazena o resultado
+    stock_response = calculate_stock(db, product_id)
+
+    # Verifica se a resposta contém um erro
+    if "error" in stock_response:
+        raise HTTPException(status_code=404, detail=stock_response["error"])
+
+    return stock_response
