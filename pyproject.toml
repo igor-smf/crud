@@ -11,6 +11,7 @@ psycopg2-binary = "^2.9.10"
 pydantic = "^2.10.6"
 fastapi = "^0.115.8"
 uvicorn = "^0.34.0"
+streamlit = "^1.43.2"
 
 [tool.poetry.dev-dependencies]
 

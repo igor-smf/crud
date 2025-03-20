@@ -1,7 +1,8 @@
 from sqlalchemy.orm import Session
 from datetime import datetime
-from schemas import ProductCreate, ProductUpdate, StockMovementWithItemsCreate, StockCalculationResponse
+from schemas import ProductCreate, ProductUpdate, StockMovementWithItemsCreate, StockCalculationResponse, Error
 from models import ProductModel, StockMovementModel, StockMovementItemModel
+from fastapi import HTTPException
 
 # Funções CRUD para Produtos
 def create_product(db: Session, product_data: ProductCreate):
@@ -19,7 +20,7 @@ def get_product(db: Session, product_id: int):
     return db.query(ProductModel).filter(ProductModel.id == product_id).first()
 
 def get_products(db: Session):
-    return db.query(ProductModel).all()
+    return db.query(ProductModel).order_by(ProductModel.id).all()
 
 def update_product(db: Session, product_id: int, product_data: ProductUpdate):
     product = db.query(ProductModel).filter(ProductModel.id == product_id).first()
@@ -39,24 +40,35 @@ def delete_product(db: Session, product_id: int):
 
 # Funções CRUD para Movimentações de Estoque
 def create_stock_movement(db: Session, movement_data: StockMovementWithItemsCreate):
+    # Inicia a criação do movimento de estoque
     new_movement = StockMovementModel(
         type=movement_data.type,
         movement_date=movement_data.movement_date
     )
-    db.add(new_movement)
-    db.commit()
-    db.refresh(new_movement)
 
     # Lista para armazenar mensagens de erro
     errors = []
 
+    # Validação antes de inserir qualquer item no banco de dados
     for item_data in movement_data.items:
-        if movement_data.type == 'saída':  # Verificação realizada apenas para movimentações de saída
+        if movement_data.type == 'saída':  # Verificação apenas para movimentações de saída
             current_stock_response = calculate_stock(db, item_data.product_id)
             if item_data.quantity > current_stock_response.current_stock:
                 errors.append(f"Not enough stock for product ID {item_data.product_id}. Available: {current_stock_response.current_stock}, Requested: {item_data.quantity}")
-                continue  # Pula a adição deste item ao banco de dados
+        
+    if errors:
+        raise HTTPException(
+            status_code=400,
+            detail=Error(error="Failed to create movement due to stock limitations", details=errors).model_dump()  # Usando .dict() para serializar a resposta
+        )
 
+    # Se não houver erros, adicione a movimentação
+    db.add(new_movement)
+    db.commit()
+    db.refresh(new_movement)
+
+    # Agora, adicione os itens da movimentação
+    for item_data in movement_data.items:
         new_item = StockMovementItemModel(
             movement_id=new_movement.id,
             product_id=item_data.product_id,
@@ -64,11 +76,7 @@ def create_stock_movement(db: Session, movement_data: StockMovementWithItemsCrea
         )
         db.add(new_item)
 
-    if errors:
-        db.rollback()  # Desfaz todas as alterações se houver erros
-        return {"error": "Failed to create movement due to stock limitations", "details": errors}
-
-    db.commit()
+    db.commit()  # Confirma a movimentação e os itens
     return new_movement
 
 def get_stock_movements(db: Session):
