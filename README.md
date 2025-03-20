@@ -32,7 +32,7 @@ Execute o seguinte comando para construir as imagens e iniciar os contêineres:
 
 ```bash
 docker-compose up --build
-
+```
 ### Passo 2: Acessar a API
 
 Após o Docker Compose iniciar os contêineres, a API estará disponível em `http://localhost:8000`. Você pode acessar a documentação interativa da API pelo Swagger UI:
