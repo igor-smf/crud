@@ -20,9 +20,8 @@ Este projeto é uma API RESTful construída com FastAPI para o gerenciamento de 
 - **Atualização de Produto**: Atualização de informações como nome, descrição e preço de um produto.
 - **Deleção de Produto**: Exclusão de um produto do sistema.
 - **Movimentação de Estoque**: Registro de movimentações de estoque, tanto de entrada quanto de saída.
-- **Validação de Estoque**: Antes de permitir a movimentação de saída, a API valida se há estoque suficiente do produto.
 - **Consulta de Estoque**: Permite verificar a quantidade disponível de um produto no estoque.
-- **Interface Interativa**: A interface de usuário, criada com Streamlit, facilita a interação com a API, permitindo o cadastro e gerenciamento de produtos e movimentações diretamente no navegador.
+
 
 ## Como Rodar o Projeto com Docker Compose
 

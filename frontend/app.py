@@ -127,10 +127,6 @@ with st.expander("Atualizar Produto"):
             else:
                 st.error("Nenhuma informação fornecida para atualização")
 
-# Inicializa a lista de itens no session_state, se não existir
-if 'items' not in st.session_state:
-    st.session_state.items = []
-
 # Adicionar Movimentação de Estoque
 with st.expander("Adicionar Movimentação de Estoque"):
     # Inicializa a lista de itens no session_state, se não existir
