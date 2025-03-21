@@ -190,7 +190,12 @@ with st.expander("Visualizar Movimentações de Estoque"):
         if response.status_code == 200:
             movements = response.json()
             df = pd.DataFrame(movements)
-            st.write(df.to_html(index=False), unsafe_allow_html=True)
+
+            # Verifique se o DataFrame não está vazio
+            if not df.empty:
+                st.write(df.to_html(index=False), unsafe_allow_html=True)
+            else:
+                st.write("Nenhuma movimentação de estoque encontrada.")
         else:
             show_response_message(response)
 
