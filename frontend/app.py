@@ -59,11 +59,15 @@ with st.expander("Visualizar Produtos"):
             products = response.json()
             df = pd.DataFrame(products)
 
-            # Exibindo produtos
-            df = df[[
-                "id", "name", "description", "price", "created_at"
-            ]]
-            st.write(df.to_html(index=False), unsafe_allow_html=True)
+            # Verifique se o DataFrame não está vazio
+            if not df.empty:
+                # Exibindo produtos
+                df = df[[
+                    "id", "name", "description", "price", "created_at"
+                ]]
+                st.write(df.to_html(index=False), unsafe_allow_html=True)
+            else:
+                st.write("Nenhum produto encontrado.")
         else:
             show_response_message(response)
 
